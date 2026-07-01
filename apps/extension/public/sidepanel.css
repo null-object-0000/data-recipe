@@ -290,3 +290,14 @@ summary {
   line-height: 1.45;
   resize: vertical;
 }
+
+.skill-package {
+  display: grid;
+  gap: 10px;
+}
+
+.package-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

@@ -1,5 +1,6 @@
 import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from "@data-recipe/detector";
 import { runRecipeOnSample } from "@data-recipe/recipe-runner";
+import { buildDataSkillPackage, type DataSkillPackage } from "@data-recipe/skill-builder";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
 interface RecipeMetadata {
@@ -123,6 +124,7 @@ function renderDetail(): void {
   const detection = summarizeResponse(capture.responseBody);
   const recipe = applyRecipeEdits(capture.url, buildRecipeFromCapture(capture));
   const runResult = runRecipeOnSample(recipe, capture.responseBody);
+  const skillPackage = buildDataSkillPackage({ recipe, userGoal: recipe.description });
 
   elements.requestDetail.className = "";
   elements.requestDetail.innerHTML = "";
@@ -146,6 +148,7 @@ function renderDetail(): void {
     block("返回预览", pre(capture.responsePreview || "无可展示内容")),
     recipeMetadataBlock(recipe),
     recipeDraftBlock(recipe),
+    skillPackageBlock(skillPackage),
     runPreviewBlock(runResult),
     advancedInfo(capture, recipe)
   );
@@ -254,6 +257,46 @@ function recipeMetadataBlock(recipe: ReturnType<typeof buildRecipeFromCapture>):
 
   wrapper.append(nameLabel, descriptionLabel);
   return block("数据技能信息", wrapper);
+}
+function skillPackageBlock(skillPackage: DataSkillPackage): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "skill-package";
+
+  const summary = document.createElement("div");
+  summary.className = "finding";
+  summary.textContent = `已生成 ${skillPackage.files.length} 个文件：${skillPackage.files.map((file) => file.path).join("、")}`;
+
+  const actions = document.createElement("div");
+  actions.className = "package-actions";
+
+  const skillFile = skillPackage.files.find((file) => file.path === "SKILL.md");
+  const recipeFile = skillPackage.files.find((file) => file.path === "recipe.json");
+
+  if (skillFile) {
+    actions.append(copyContentButton("复制 SKILL.md", skillFile.content));
+  }
+  if (recipeFile) {
+    actions.append(copyContentButton("复制 recipe.json", recipeFile.content));
+  }
+
+  const details = document.createElement("details");
+  const detailsSummary = document.createElement("summary");
+  detailsSummary.textContent = "预览 SKILL.md";
+  details.append(detailsSummary, pre(skillFile?.content ?? "暂未生成 SKILL.md"));
+
+  wrapper.append(summary, actions, details);
+  return block("技能包预览", wrapper);
+}
+
+function copyContentButton(label: string, content: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "copy-button";
+  button.textContent = label;
+  button.addEventListener("click", () => {
+    void copyText(content, button);
+  });
+  return button;
 }
 function runPreviewBlock(runResult: ReturnType<typeof runRecipeOnSample>): HTMLElement {
   const wrapper = document.createElement("div");

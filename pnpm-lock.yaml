@@ -29,6 +29,9 @@ importers:
       '@data-recipe/recipe-runner':
         specifier: workspace:*
         version: link:../../packages/recipe-runner
+      '@data-recipe/skill-builder':
+        specifier: workspace:*
+        version: link:../../packages/skill-builder
     devDependencies:
       rimraf:
         specifier: ^6.0.1
