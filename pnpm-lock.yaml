@@ -32,6 +32,9 @@ importers:
       '@data-recipe/skill-builder':
         specifier: workspace:*
         version: link:../../packages/skill-builder
+      '@data-recipe/skill-exporter':
+        specifier: workspace:*
+        version: link:../../packages/skill-exporter
     devDependencies:
       rimraf:
         specifier: ^6.0.1
@@ -56,6 +59,12 @@ importers:
       '@data-recipe/recipe-core':
         specifier: workspace:*
         version: link:../recipe-core
+
+  packages/skill-exporter:
+    dependencies:
+      '@data-recipe/skill-builder':
+        specifier: workspace:*
+        version: link:../skill-builder
 
 packages:
 
