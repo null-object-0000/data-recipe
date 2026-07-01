@@ -145,3 +145,92 @@ data-recipe/
 ## License
 
 TBD
+
+## Run the MVP locally
+
+### Install dependencies
+
+```bash
+pnpm install
+```
+
+### Build the browser extension
+
+```bash
+pnpm build:extension
+```
+
+The extension output is:
+
+```text
+apps/extension/dist
+```
+
+### Load it in Chrome
+
+1. Open `chrome://extensions`;
+2. Enable Developer mode;
+3. Click "Load unpacked";
+4. Select `apps/extension/dist`;
+5. Click the "AI 有数" extension icon to open the side panel.
+
+### Manual verification
+
+1. Open `docs/test-page.html`;
+2. Click "开始发现" in the side panel;
+3. Click the fetch or XHR test button on the test page;
+4. The side panel should show the discovered data source count, URL, method, status, query data, and response preview;
+5. Expand "高级信息" to inspect the minimal Data Recipe draft JSON.
+
+You can also start discovery on any page you are authorized to access and then trigger a page query. This MVP only performs low-frequency local detection. It does not bypass login, captchas, risk controls, or dynamic signatures.
+
+### Development mode
+
+```bash
+pnpm dev:extension
+```
+
+This watches and rebuilds `apps/extension/dist`. Refresh the unpacked extension in Chrome before testing updated code.
+
+### Export a Data Skill Package
+
+After one discovery flow, use the side panel to:
+
+1. Fill in the data skill name and purpose;
+2. Confirm or rename returned fields;
+3. Check "试运行结果" to confirm data can be read;
+4. Check "技能包预览" to confirm required files are present;
+5. Click "导出技能包".
+
+The current MVP downloads a `.data-skill.json` file. This is a temporary text package format containing:
+
+```text
+packageName
+files[]
+  SKILL.md
+  recipe.json
+  examples.md
+  README.md
+```
+
+A later version can export a real folder or zip. For now, the JSON text package validates the generate, test, and export loop.
+
+### Data Skill Package acceptance checks
+
+An exported package should at least:
+
+* Include `SKILL.md`, `recipe.json`, `examples.md`, and `README.md`;
+* Use `SKILL.md` to explain what the data skill is useful for;
+* Use `recipe.json` to hold the data source, query inputs, returned fields, and test-run information;
+* Show a data preview in the side panel test-run result;
+* Show no missing required files before export.
+
+### Validate an exported skill package
+
+After exporting a `.data-skill.json` file, run:
+
+```bash
+pnpm validate:skill-package path/to/your.data-skill.json
+```
+
+The command checks that all four required files are present and non-empty. It exits with a non-zero status when the package is invalid, so it can be used in later automated checks.

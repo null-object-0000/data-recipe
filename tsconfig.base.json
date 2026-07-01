@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@data-recipe/recipe-core": [
+        "packages/recipe-core/src/index.ts"
+      ],
+      "@data-recipe/detector": [
+        "packages/detector/src/index.ts"
+      ],
+      "@data-recipe/recipe-runner": [
+        "packages/recipe-runner/src/index.ts"
+      ]
+    }
+  }
+}

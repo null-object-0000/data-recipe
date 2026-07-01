@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 有数</title>
+    <link rel="stylesheet" href="./sidepanel.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <p class="eyebrow">DataRecipe</p>
+          <h1>AI 有数</h1>
+        </div>
+        <span id="statusBadge" class="status">未开始</span>
+      </header>
+
+      <section class="toolbar" aria-label="发现控制">
+        <button id="startButton" class="primary" type="button">开始发现</button>
+        <button id="stopButton" type="button">停止发现</button>
+      </section>
+
+      <section class="summary">
+        <strong id="captureCount">0</strong>
+        <span>个数据来源</span>
+      </section>
+
+      <section class="layout">
+        <div class="request-list">
+          <div class="section-title">发现的数据来源</div>
+          <div id="requestList" class="list-empty">还没有发现数据来源</div>
+        </div>
+
+        <article class="detail">
+          <div class="section-title">详情</div>
+          <div id="requestDetail" class="empty-detail">点击「开始发现」，然后在页面里触发一次查询。</div>
+        </article>
+      </section>
+    </main>
+    <script src="./sidepanel.global.js"></script>
+  </body>
+</html>

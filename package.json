@@ -1,0 +1,19 @@
+{
+  "name": "data-recipe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn web page queries and API responses into reusable data recipes for AI agents.",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "dev:extension": "pnpm --filter @data-recipe/extension dev",
+    "build:extension": "pnpm --filter @data-recipe/extension build",
+    "validate:skill-package": "node scripts/validate-data-skill-package.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "pnpm@9.7.0"
+}

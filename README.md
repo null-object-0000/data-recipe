@@ -10,3 +10,19 @@ Turn web page queries and API responses into reusable data recipes for AI agents
 
 * [中文说明](./README.zh-CN.md)
 * [English README](./README.en.md)
+
+## MVP quick start
+
+```bash
+pnpm install
+pnpm build:extension
+```
+
+Load `apps/extension/dist` as an unpacked extension in Chrome, open `docs/test-page.html`, open the DataRecipe side panel, click "开始发现", trigger the fetch or XHR test request, then confirm the generated Data Skill Package and export the `.data-skill.json` file.
+
+
+## Validate an exported skill package
+
+```bash
+pnpm validate:skill-package path/to/your.data-skill.json
+```

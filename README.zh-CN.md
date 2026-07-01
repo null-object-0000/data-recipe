@@ -138,3 +138,92 @@ data-recipe/
 ## License
 
 TBD
+
+## 本地运行 MVP
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 构建浏览器插件
+
+```bash
+pnpm build:extension
+```
+
+构建产物在：
+
+```text
+apps/extension/dist
+```
+
+### 在 Chrome 中加载插件
+
+1. 打开 `chrome://extensions`；
+2. 开启「开发者模式」；
+3. 点击「加载已解压的扩展程序」；
+4. 选择 `apps/extension/dist`；
+5. 点击浏览器工具栏里的「AI 有数」图标打开侧边栏。
+
+### 手动验证
+
+1. 打开 `docs/test-page.html`；
+2. 在 AI 有数侧边栏点击「开始发现」；
+3. 在测试页点击「触发 fetch 查询」或「触发 XHR 查询」；
+4. 侧边栏应显示发现的数据来源数量、URL、请求方式、状态、查询条件和返回预览；
+5. 展开「高级信息」可以查看最小数据配方草稿 JSON。
+
+也可以在任意你有权访问的网页上点击「开始发现」，然后触发页面查询。当前 MVP 只做低频本地探测，不会绕过登录、验证码、风控或动态签名。
+
+### 开发模式
+
+```bash
+pnpm dev:extension
+```
+
+该命令会监听并重新构建 `apps/extension/dist`。Chrome 扩展页面中需要手动点击刷新插件后再验证最新代码。
+
+### 导出 Data Skill Package
+
+完成一次发现后，可以在侧边栏中：
+
+1. 为数据技能填写名称和用途说明；
+2. 确认或修改返回字段名称；
+3. 查看「试运行结果」确认能读取数据；
+4. 在「技能包预览」中确认已包含必需文件；
+5. 点击「导出技能包」。
+
+当前 MVP 会下载一个 `.data-skill.json` 文件。它是临时的文本包格式，里面包含：
+
+```text
+packageName
+files[]
+  SKILL.md
+  recipe.json
+  examples.md
+  README.md
+```
+
+后续会把这个导出格式升级为真实文件夹或 zip。当前阶段先用 JSON 文本包验证「可生成、可测试、可导出」的闭环。
+
+### Data Skill Package 验收点
+
+导出的技能包至少应满足：
+
+* 包含 `SKILL.md`、`recipe.json`、`examples.md`、`README.md`；
+* `SKILL.md` 能说明这个数据技能适合完成什么任务；
+* `recipe.json` 包含数据来源、查询条件、返回字段和测试运行所需信息；
+* 侧边栏「试运行结果」可以展示数据预览；
+* 导出前没有提示缺少必需文件。
+
+### 校验导出的技能包
+
+导出 `.data-skill.json` 后，可以用下面的命令检查它是否包含四个必需文件，并确认文件内容不为空：
+
+```bash
+pnpm validate:skill-package path/to/your.data-skill.json
+```
+
+校验通过时会输出技能包名称和文件列表；缺少文件或文件为空时会返回非零退出码，便于后续接入自动化验收。
