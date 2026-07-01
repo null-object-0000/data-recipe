@@ -13,7 +13,8 @@
     "@data-recipe/detector": "workspace:*",
     "@data-recipe/recipe-core": "workspace:*",
     "@data-recipe/recipe-runner": "workspace:*",
-    "@data-recipe/skill-builder": "workspace:*"
+    "@data-recipe/skill-builder": "workspace:*",
+    "@data-recipe/skill-exporter": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.0.1"

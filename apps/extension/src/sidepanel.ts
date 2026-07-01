@@ -1,6 +1,7 @@
 import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from "@data-recipe/detector";
 import { runRecipeOnSample } from "@data-recipe/recipe-runner";
 import { buildDataSkillPackage, type DataSkillPackage } from "@data-recipe/skill-builder";
+import { exportDataSkillPackageAsJson } from "@data-recipe/skill-exporter";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
 interface RecipeMetadata {
@@ -288,6 +289,26 @@ function skillPackageBlock(skillPackage: DataSkillPackage): HTMLElement {
   return block("技能包预览", wrapper);
 }
 
+function exportPackageButton(skillPackage: DataSkillPackage): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "primary";
+  button.textContent = "导出技能包";
+  button.addEventListener("click", () => {
+    downloadTextFile(exportDataSkillPackageAsJson(skillPackage));
+  });
+  return button;
+}
+
+function downloadTextFile(file: ReturnType<typeof exportDataSkillPackageAsJson>): void {
+  const blob = new Blob([file.content], { type: file.mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 function copyContentButton(label: string, content: string): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
