@@ -235,3 +235,28 @@ summary {
   display: grid;
   gap: 10px;
 }
+
+.field-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.field-row {
+  display: grid;
+  gap: 4px;
+}
+
+.field-row input {
+  border: 1px solid #c9cdd4;
+  border-radius: 6px;
+  font: inherit;
+  min-height: 34px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.field-row span {
+  color: #6b7280;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

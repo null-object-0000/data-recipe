@@ -7,13 +7,15 @@ const port = chrome.runtime.connect({ name: "data-recipe-sidepanel" });
 const state: {
   snapshot: PanelSnapshot;
   selectedId: string | null;
+  fieldLabels: Record<string, Record<string, string>>;
 } = {
   snapshot: {
     tabId: null,
     state: "idle",
     captures: []
   },
-  selectedId: null
+  selectedId: null,
+  fieldLabels: {}
 };
 
 const elements = {
@@ -108,7 +110,7 @@ function renderDetail(): void {
   }
 
   const detection = summarizeResponse(capture.responseBody);
-  const recipe = buildRecipeFromCapture(capture);
+  const recipe = applyFieldLabels(capture.id, buildRecipeFromCapture(capture));
   const runResult = runRecipeOnSample(recipe, capture.responseBody);
 
   elements.requestDetail.className = "";
@@ -137,6 +139,17 @@ function renderDetail(): void {
   );
 }
 
+function applyFieldLabels(recipeId: string, recipe: ReturnType<typeof buildRecipeFromCapture>): ReturnType<typeof buildRecipeFromCapture> {
+  const labels = state.fieldLabels[recipeId] ?? {};
+  return {
+    ...recipe,
+    fields: recipe.fields.map((field) => ({
+      ...field,
+      displayName: labels[field.path] ?? field.displayName,
+      description: labels[field.path] ? "用户确认" : field.description
+    }))
+  };
+}
 function parameterPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): HTMLElement {
   const parameters = [...recipe.request.queryFields, ...recipe.request.bodyFields];
 
@@ -151,14 +164,35 @@ function parameterPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>
 }
 
 function fieldPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): HTMLElement {
-  if (recipe.fields.length === 0) {
+  if (recipe.fields.length === 0 || !state.selectedId) {
     return block("返回字段", findingList(["暂未从当前数据中识别出稳定字段。"]));
   }
 
-  return block(
-    "返回字段",
-    findingList(recipe.fields.slice(0, 16).map((field) => `${field.displayName}：${field.type}${field.sample === undefined ? "" : `，样例 ${formatInlineValue(field.sample)}`}`))
-  );
+  const wrapper = document.createElement("div");
+  wrapper.className = "field-editor";
+
+  recipe.fields.slice(0, 16).forEach((field) => {
+    const row = document.createElement("label");
+    row.className = "field-row";
+
+    const input = document.createElement("input");
+    input.value = field.displayName;
+    input.placeholder = field.name;
+    input.addEventListener("input", () => {
+      if (!state.selectedId) return;
+      const labels = state.fieldLabels[state.selectedId] ?? {};
+      labels[field.path] = input.value.trim() || field.name;
+      state.fieldLabels[state.selectedId] = labels;
+    });
+
+    const meta = document.createElement("span");
+    meta.textContent = `${field.name} · ${field.type}${field.sample === undefined ? "" : ` · 样例 ${formatInlineValue(field.sample)}`}`;
+
+    row.append(input, meta);
+    wrapper.append(row);
+  });
+
+  return block("返回字段", wrapper);
 }
 
 function runPreviewBlock(runResult: ReturnType<typeof runRecipeOnSample>): HTMLElement {
@@ -297,6 +331,4 @@ async function copyText(text: string, button: HTMLButtonElement): Promise<void> 
     button.textContent = originalText;
   }, 1600);
 }
-
-
 
