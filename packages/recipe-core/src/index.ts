@@ -2,6 +2,8 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | 
 
 export type JsonObject = Record<string, unknown>;
 
+export type DataValueType = "string" | "number" | "boolean" | "object" | "array" | "null" | "unknown";
+
 export interface DataRecipe {
   name: string;
   displayName: string;
@@ -22,6 +24,17 @@ export interface DataRecipeSource {
 export interface DataRecipeRequest {
   query: JsonObject;
   body: unknown;
+  queryFields: DataRecipeParameter[];
+  bodyFields: DataRecipeParameter[];
+}
+
+export interface DataRecipeParameter {
+  name: string;
+  displayName: string;
+  path: string;
+  type: DataValueType;
+  required: boolean;
+  sample?: unknown;
 }
 
 export interface DataRecipeResponse {
@@ -39,9 +52,11 @@ export interface DataRecipePagination {
 
 export interface DataRecipeField {
   name: string;
+  displayName: string;
   path: string;
-  type: "string" | "number" | "boolean" | "object" | "array" | "null" | "unknown";
+  type: DataValueType;
   sample?: unknown;
+  description: string;
 }
 
 export interface CreateRecipeInput {
@@ -50,6 +65,8 @@ export interface CreateRecipeInput {
   method: HttpMethod;
   query: JsonObject;
   body: unknown;
+  queryFields?: DataRecipeParameter[];
+  bodyFields?: DataRecipeParameter[];
   responseType: DataRecipeResponse["type"];
   listPath: string;
   totalPath: string;
@@ -70,7 +87,9 @@ export function createDataRecipeDraft(input: CreateRecipeInput): DataRecipe {
     },
     request: {
       query: input.query,
-      body: input.body ?? {}
+      body: input.body ?? {},
+      queryFields: input.queryFields ?? inferParameters(input.query, "query"),
+      bodyFields: input.bodyFields ?? inferParameters(input.body, "body")
     },
     response: {
       type: input.responseType,
@@ -85,6 +104,31 @@ export function createDataRecipeDraft(input: CreateRecipeInput): DataRecipe {
     },
     fields: input.fields
   };
+}
+
+export function inferParameters(value: unknown, rootPath: "query" | "body"): DataRecipeParameter[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return [];
+  }
+
+  return Object.entries(value).slice(0, 50).map(([name, sample]) => ({
+    name,
+    displayName: name,
+    path: `${rootPath}.${name}`,
+    type: inferDataValueType(sample),
+    required: false,
+    sample: simplifySample(sample)
+  }));
+}
+
+export function inferDataValueType(value: unknown): DataValueType {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  if (typeof value === "string") return "string";
+  if (typeof value === "number") return "number";
+  if (typeof value === "boolean") return "boolean";
+  if (typeof value === "object") return "object";
+  return "unknown";
 }
 
 function buildRecipeName(apiUrl: string): string {
@@ -108,4 +152,16 @@ function normalizeName(value: string): string {
     .replace(/^_+|_+$/g, "");
 
   return normalized || "data_source";
+}
+
+function simplifySample(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.slice(0, 2);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).slice(0, 5));
+  }
+
+  return value;
 }

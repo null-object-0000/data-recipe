@@ -128,10 +128,36 @@ function renderDetail(): void {
         : "暂未发现 total / count / page / records / list 等字段"
     ])),
     block("查询条件", pre(JSON.stringify({ query: capture.query, body: capture.requestBody ?? {} }, null, 2))),
+    parameterPreviewBlock(recipe),
+    fieldPreviewBlock(recipe),
     block("返回预览", pre(capture.responsePreview || "无可展示内容")),
     recipeDraftBlock(recipe),
     runPreviewBlock(runResult),
     advancedInfo(capture, recipe)
+  );
+}
+
+function parameterPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): HTMLElement {
+  const parameters = [...recipe.request.queryFields, ...recipe.request.bodyFields];
+
+  if (parameters.length === 0) {
+    return block("查询条件说明", findingList(["暂未发现明确的查询条件。"]));
+  }
+
+  return block(
+    "查询条件说明",
+    findingList(parameters.slice(0, 12).map((item) => `${item.displayName}：${item.type}${item.sample === undefined ? "" : `，样例 ${formatInlineValue(item.sample)}`}`))
+  );
+}
+
+function fieldPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): HTMLElement {
+  if (recipe.fields.length === 0) {
+    return block("返回字段", findingList(["暂未从当前数据中识别出稳定字段。"]));
+  }
+
+  return block(
+    "返回字段",
+    findingList(recipe.fields.slice(0, 16).map((field) => `${field.displayName}：${field.type}${field.sample === undefined ? "" : `，样例 ${formatInlineValue(field.sample)}`}`))
   );
 }
 
@@ -242,6 +268,13 @@ function readableUrl(urlValue: string): string {
   }
 }
 
+function formatInlineValue(value: unknown): string {
+  const text = typeof value === "string" ? value : JSON.stringify(value);
+  if (!text) {
+    return "空";
+  }
+  return text.length > 48 ? `${text.slice(0, 48)}...` : text;
+}
 function getElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
   if (!element) {
@@ -264,4 +297,6 @@ async function copyText(text: string, button: HTMLButtonElement): Promise<void> 
     button.textContent = originalText;
   }, 1600);
 }
+
+
 

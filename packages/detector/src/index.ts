@@ -1,6 +1,7 @@
 import {
   createDataRecipeDraft,
   type DataRecipe,
+  inferDataValueType,
   type DataRecipeField,
   type JsonObject
 } from "@data-recipe/recipe-core";
@@ -151,9 +152,11 @@ function inferFieldsAtPath(responseBody: unknown, listPath: string): DataRecipeF
 
   return Object.entries(sample).map(([key, value]) => ({
     name: key,
+    displayName: key,
     path: `${listPath}.${key}`,
-    type: inferJsonType(value),
-    sample: simplifySample(value)
+    type: inferDataValueType(value),
+    sample: simplifySample(value),
+    description: "待确认"
   }));
 }
 
@@ -192,16 +195,6 @@ function walk(value: unknown, path: string, visit: (path: string, value: unknown
   });
 }
 
-function inferJsonType(value: unknown): DataRecipeField["type"] {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  if (typeof value === "string") return "string";
-  if (typeof value === "number") return "number";
-  if (typeof value === "boolean") return "boolean";
-  if (typeof value === "object") return "object";
-  return "unknown";
-}
-
 function simplifySample(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.slice(0, 2);
@@ -213,3 +206,5 @@ function simplifySample(value: unknown): unknown {
 
   return value;
 }
+
+
