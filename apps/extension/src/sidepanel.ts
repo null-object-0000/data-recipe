@@ -1,7 +1,7 @@
 import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from "@data-recipe/detector";
 import { runRecipeOnSample } from "@data-recipe/recipe-runner";
 import { buildDataSkillPackage, type DataSkillPackage } from "@data-recipe/skill-builder";
-import { exportDataSkillPackageAsJson } from "@data-recipe/skill-exporter";
+import { exportDataSkillPackageAsJson, validateDataSkillPackage } from "@data-recipe/skill-exporter";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
 interface RecipeMetadata {
@@ -263,15 +263,20 @@ function skillPackageBlock(skillPackage: DataSkillPackage): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = "skill-package";
 
+  const validation = validateDataSkillPackage(skillPackage);
   const summary = document.createElement("div");
   summary.className = "finding";
-  summary.textContent = `已生成 ${skillPackage.files.length} 个文件：${skillPackage.files.map((file) => file.path).join("、")}`;
+  summary.textContent = validation.ok
+    ? `已生成 ${skillPackage.files.length} 个文件，技能包可以导出。`
+    : `技能包还缺少：${validation.missingFiles.join("、")}`;
 
   const actions = document.createElement("div");
   actions.className = "package-actions";
 
   const skillFile = skillPackage.files.find((file) => file.path === "SKILL.md");
   const recipeFile = skillPackage.files.find((file) => file.path === "recipe.json");
+
+  actions.append(exportPackageButton(skillPackage));
 
   if (skillFile) {
     actions.append(copyContentButton("复制 SKILL.md", skillFile.content));

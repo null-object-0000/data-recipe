@@ -1,5 +1,21 @@
 import type { DataSkillPackage } from "@data-recipe/skill-builder";
 
+export interface DataSkillPackageValidation {
+  ok: boolean;
+  missingFiles: string[];
+}
+
+const REQUIRED_FILES = ["SKILL.md", "recipe.json", "examples.md", "README.md"] as const;
+
+export function validateDataSkillPackage(skillPackage: DataSkillPackage): DataSkillPackageValidation {
+  const existing = new Set(skillPackage.files.map((file) => file.path));
+  const missingFiles = REQUIRED_FILES.filter((file) => !existing.has(file));
+
+  return {
+    ok: missingFiles.length === 0,
+    missingFiles
+  };
+}
 export interface ExportedDataSkillPackage {
   fileName: string;
   mimeType: "application/json";
@@ -23,3 +39,4 @@ function normalizeFileName(value: string): string {
 
   return normalized || "data-skill";
 }
+
