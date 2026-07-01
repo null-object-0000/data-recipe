@@ -1,0 +1,19 @@
+{
+  "name": "@data-recipe/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsup src/background.ts src/content.ts src/page-hook.ts src/sidepanel.ts --format iife --target es2020 --splitting false --clean --out-dir dist && node scripts/copy-assets.mjs",
+    "dev": "tsup src/background.ts src/content.ts src/page-hook.ts src/sidepanel.ts --format iife --target es2020 --splitting false --watch --out-dir dist --onSuccess \"node scripts/copy-assets.mjs\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@data-recipe/detector": "workspace:*",
+    "@data-recipe/recipe-core": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1"
+  }
+}

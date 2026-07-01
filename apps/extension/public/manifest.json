@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "DataRecipe / AI 有数",
+  "description": "发现网页背后的数据来源，并生成可复用的数据配方草稿。",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "AI 有数"
+  },
+  "background": {
+    "service_worker": "background.global.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.global.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": ["activeTab", "sidePanel", "tabs", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["page-hook.global.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
