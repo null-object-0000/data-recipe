@@ -48,6 +48,12 @@ importers:
         specifier: workspace:*
         version: link:../recipe-core
 
+  packages/skill-builder:
+    dependencies:
+      '@data-recipe/recipe-core':
+        specifier: workspace:*
+        version: link:../recipe-core
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.7':
