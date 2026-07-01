@@ -230,3 +230,8 @@ summary {
 .copy-button {
   justify-self: start;
 }
+
+.run-preview {
+  display: grid;
+  gap: 10px;
+}

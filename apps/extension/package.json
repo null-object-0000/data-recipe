@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@data-recipe/detector": "workspace:*",
-    "@data-recipe/recipe-core": "workspace:*"
+    "@data-recipe/recipe-core": "workspace:*",
+    "@data-recipe/recipe-runner": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.0.1"

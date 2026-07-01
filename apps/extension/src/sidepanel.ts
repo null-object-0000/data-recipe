@@ -1,4 +1,5 @@
 import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from "@data-recipe/detector";
+import { runRecipeOnSample } from "@data-recipe/recipe-runner";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
 const port = chrome.runtime.connect({ name: "data-recipe-sidepanel" });
@@ -108,6 +109,7 @@ function renderDetail(): void {
 
   const detection = summarizeResponse(capture.responseBody);
   const recipe = buildRecipeFromCapture(capture);
+  const runResult = runRecipeOnSample(recipe, capture.responseBody);
 
   elements.requestDetail.className = "";
   elements.requestDetail.innerHTML = "";
@@ -128,8 +130,25 @@ function renderDetail(): void {
     block("查询条件", pre(JSON.stringify({ query: capture.query, body: capture.requestBody ?? {} }, null, 2))),
     block("返回预览", pre(capture.responsePreview || "无可展示内容")),
     recipeDraftBlock(recipe),
+    runPreviewBlock(runResult),
     advancedInfo(capture, recipe)
   );
+}
+
+function runPreviewBlock(runResult: ReturnType<typeof runRecipeOnSample>): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "run-preview";
+
+  const summary = document.createElement("div");
+  summary.className = "finding";
+  summary.textContent = runResult.message;
+  wrapper.append(summary);
+
+  if (runResult.previewRows.length > 0) {
+    wrapper.append(pre(JSON.stringify(runResult.previewRows, null, 2)));
+  }
+
+  return block("试运行结果", wrapper);
 }
 
 function recipeDraftBlock(recipe: unknown): HTMLElement {
@@ -245,3 +264,4 @@ async function copyText(text: string, button: HTMLButtonElement): Promise<void> 
     button.textContent = originalText;
   }, 1600);
 }
+
