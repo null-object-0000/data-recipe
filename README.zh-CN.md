@@ -138,3 +138,49 @@ data-recipe/
 ## License
 
 TBD
+
+## 本地运行 MVP
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 构建浏览器插件
+
+```bash
+pnpm build:extension
+```
+
+构建产物在：
+
+```text
+apps/extension/dist
+```
+
+### 在 Chrome 中加载插件
+
+1. 打开 `chrome://extensions`；
+2. 开启「开发者模式」；
+3. 点击「加载已解压的扩展程序」；
+4. 选择 `apps/extension/dist`；
+5. 点击浏览器工具栏里的「AI 有数」图标打开侧边栏。
+
+### 手动验证
+
+1. 打开 `docs/test-page.html`；
+2. 在 AI 有数侧边栏点击「开始发现」；
+3. 在测试页点击「触发 fetch 查询」或「触发 XHR 查询」；
+4. 侧边栏应显示发现的数据来源数量、URL、请求方式、状态、查询条件和返回预览；
+5. 展开「高级信息」可以查看最小数据配方草稿 JSON。
+
+也可以在任意你有权访问的网页上点击「开始发现」，然后触发页面查询。当前 MVP 只做低频本地探测，不会绕过登录、验证码、风控或动态签名。
+
+### 开发模式
+
+```bash
+pnpm dev:extension
+```
+
+该命令会监听并重新构建 `apps/extension/dist`。Chrome 扩展页面中需要手动点击刷新插件后再验证最新代码。

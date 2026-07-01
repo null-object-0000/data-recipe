@@ -145,3 +145,49 @@ data-recipe/
 ## License
 
 TBD
+
+## Run the MVP locally
+
+### Install dependencies
+
+```bash
+pnpm install
+```
+
+### Build the browser extension
+
+```bash
+pnpm build:extension
+```
+
+The extension output is:
+
+```text
+apps/extension/dist
+```
+
+### Load it in Chrome
+
+1. Open `chrome://extensions`;
+2. Enable Developer mode;
+3. Click "Load unpacked";
+4. Select `apps/extension/dist`;
+5. Click the "AI 有数" extension icon to open the side panel.
+
+### Manual verification
+
+1. Open `docs/test-page.html`;
+2. Click "开始发现" in the side panel;
+3. Click the fetch or XHR test button on the test page;
+4. The side panel should show the discovered data source count, URL, method, status, query data, and response preview;
+5. Expand "高级信息" to inspect the minimal Data Recipe draft JSON.
+
+You can also start discovery on any page you are authorized to access and then trigger a page query. This MVP only performs low-frequency local detection. It does not bypass login, captchas, risk controls, or dynamic signatures.
+
+### Development mode
+
+```bash
+pnpm dev:extension
+```
+
+This watches and rebuilds `apps/extension/dist`. Refresh the unpacked extension in Chrome before testing updated code.
