@@ -224,3 +224,13 @@ An exported package should at least:
 * Use `recipe.json` to hold the data source, query inputs, returned fields, and test-run information;
 * Show a data preview in the side panel test-run result;
 * Show no missing required files before export.
+
+### Validate an exported skill package
+
+After exporting a `.data-skill.json` file, run:
+
+```bash
+pnpm validate:skill-package path/to/your.data-skill.json
+```
+
+The command checks that all four required files are present and non-empty. It exits with a non-zero status when the package is invalid, so it can be used in later automated checks.

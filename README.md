@@ -20,3 +20,9 @@ pnpm build:extension
 
 Load `apps/extension/dist` as an unpacked extension in Chrome, open `docs/test-page.html`, open the DataRecipe side panel, click "开始发现", trigger the fetch or XHR test request, then confirm the generated Data Skill Package and export the `.data-skill.json` file.
 
+
+## Validate an exported skill package
+
+```bash
+pnpm validate:skill-package path/to/your.data-skill.json
+```

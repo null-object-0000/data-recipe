@@ -7,7 +7,8 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "dev:extension": "pnpm --filter @data-recipe/extension dev",
-    "build:extension": "pnpm --filter @data-recipe/extension build"
+    "build:extension": "pnpm --filter @data-recipe/extension build",
+    "validate:skill-package": "node scripts/validate-data-skill-package.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
