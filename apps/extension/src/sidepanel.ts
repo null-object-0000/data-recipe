@@ -2,6 +2,8 @@ import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from 
 import { runRecipeOnSample } from "@data-recipe/recipe-runner";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
+const FIELD_LABELS_STORAGE_KEY = "dataRecipeFieldLabels";
+
 const port = chrome.runtime.connect({ name: "data-recipe-sidepanel" });
 
 const state: {
@@ -43,6 +45,7 @@ port.onMessage.addListener((event: PanelEvent) => {
   }
 });
 
+void loadFieldLabels();
 port.postMessage({ type: "get-snapshot" });
 
 function applySnapshot(snapshot: PanelSnapshot): void {
@@ -110,7 +113,7 @@ function renderDetail(): void {
   }
 
   const detection = summarizeResponse(capture.responseBody);
-  const recipe = applyFieldLabels(capture.id, buildRecipeFromCapture(capture));
+  const recipe = applyFieldLabels(capture.url, buildRecipeFromCapture(capture));
   const runResult = runRecipeOnSample(recipe, capture.responseBody);
 
   elements.requestDetail.className = "";
@@ -179,10 +182,14 @@ function fieldPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): H
     input.value = field.displayName;
     input.placeholder = field.name;
     input.addEventListener("input", () => {
-      if (!state.selectedId) return;
-      const labels = state.fieldLabels[state.selectedId] ?? {};
-      labels[field.path] = input.value.trim() || field.name;
-      state.fieldLabels[state.selectedId] = labels;
+      const sourceKey = recipe.source.apiUrl;
+      const labels = state.fieldLabels[sourceKey] ?? {};
+      const label = input.value.trim() || field.name;
+      labels[field.path] = label;
+      state.fieldLabels[sourceKey] = labels;
+      field.displayName = label;
+      field.description = "用户确认";
+      void saveFieldLabels();
     });
 
     const meta = document.createElement("span");
@@ -302,6 +309,26 @@ function readableUrl(urlValue: string): string {
   }
 }
 
+async function loadFieldLabels(): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get(FIELD_LABELS_STORAGE_KEY);
+    const labels = stored[FIELD_LABELS_STORAGE_KEY];
+    if (labels && typeof labels === "object" && !Array.isArray(labels)) {
+      state.fieldLabels = labels as Record<string, Record<string, string>>;
+      render();
+    }
+  } catch {
+    // Local edits remain usable even if extension storage is unavailable.
+  }
+}
+
+async function saveFieldLabels(): Promise<void> {
+  try {
+    await chrome.storage.local.set({ [FIELD_LABELS_STORAGE_KEY]: state.fieldLabels });
+  } catch {
+    // The current in-memory edit is still reflected in the copied draft.
+  }
+}
 function formatInlineValue(value: unknown): string {
   const text = typeof value === "string" ? value : JSON.stringify(value);
   if (!text) {
@@ -331,4 +358,5 @@ async function copyText(text: string, button: HTMLButtonElement): Promise<void> 
     button.textContent = originalText;
   }, 1600);
 }
+
 
