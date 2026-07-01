@@ -7,6 +7,8 @@ export type DataValueType = "string" | "number" | "boolean" | "object" | "array"
 export interface DataRecipe {
   name: string;
   displayName: string;
+  description: string;
+  useCases: string[];
   source: DataRecipeSource;
   request: DataRecipeRequest;
   response: DataRecipeResponse;
@@ -79,6 +81,8 @@ export function createDataRecipeDraft(input: CreateRecipeInput): DataRecipe {
   return {
     name,
     displayName: "数据来源",
+    description: "用于获取和预览这个数据来源中的列表数据。",
+    useCases: ["查看数据明细", "汇总和分析列表数据"],
     source: {
       type: "web_api",
       pageUrl: input.pageUrl,
@@ -165,3 +169,4 @@ function simplifySample(value: unknown): unknown {
 
   return value;
 }
+

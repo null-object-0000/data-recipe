@@ -2,7 +2,13 @@ import { buildRecipeFromCapture, summarizeResponse, type CapturedRequest } from 
 import { runRecipeOnSample } from "@data-recipe/recipe-runner";
 import type { PanelEvent, PanelSnapshot } from "./messages";
 
+interface RecipeMetadata {
+  displayName?: string;
+  description?: string;
+  useCases?: string[];
+}
 const FIELD_LABELS_STORAGE_KEY = "dataRecipeFieldLabels";
+const RECIPE_META_STORAGE_KEY = "dataRecipeMetadata";
 
 const port = chrome.runtime.connect({ name: "data-recipe-sidepanel" });
 
@@ -10,6 +16,7 @@ const state: {
   snapshot: PanelSnapshot;
   selectedId: string | null;
   fieldLabels: Record<string, Record<string, string>>;
+  recipeMetadata: Record<string, RecipeMetadata>;
 } = {
   snapshot: {
     tabId: null,
@@ -17,7 +24,8 @@ const state: {
     captures: []
   },
   selectedId: null,
-  fieldLabels: {}
+  fieldLabels: {},
+  recipeMetadata: {}
 };
 
 const elements = {
@@ -45,7 +53,7 @@ port.onMessage.addListener((event: PanelEvent) => {
   }
 });
 
-void loadFieldLabels();
+void loadStoredEdits();
 port.postMessage({ type: "get-snapshot" });
 
 function applySnapshot(snapshot: PanelSnapshot): void {
@@ -113,7 +121,7 @@ function renderDetail(): void {
   }
 
   const detection = summarizeResponse(capture.responseBody);
-  const recipe = applyFieldLabels(capture.url, buildRecipeFromCapture(capture));
+  const recipe = applyRecipeEdits(capture.url, buildRecipeFromCapture(capture));
   const runResult = runRecipeOnSample(recipe, capture.responseBody);
 
   elements.requestDetail.className = "";
@@ -136,16 +144,21 @@ function renderDetail(): void {
     parameterPreviewBlock(recipe),
     fieldPreviewBlock(recipe),
     block("返回预览", pre(capture.responsePreview || "无可展示内容")),
+    recipeMetadataBlock(recipe),
     recipeDraftBlock(recipe),
     runPreviewBlock(runResult),
     advancedInfo(capture, recipe)
   );
 }
 
-function applyFieldLabels(recipeId: string, recipe: ReturnType<typeof buildRecipeFromCapture>): ReturnType<typeof buildRecipeFromCapture> {
-  const labels = state.fieldLabels[recipeId] ?? {};
+function applyRecipeEdits(sourceKey: string, recipe: ReturnType<typeof buildRecipeFromCapture>): ReturnType<typeof buildRecipeFromCapture> {
+  const labels = state.fieldLabels[sourceKey] ?? {};
+  const metadata = state.recipeMetadata[sourceKey];
   return {
     ...recipe,
+    displayName: metadata?.displayName ?? recipe.displayName,
+    description: metadata?.description ?? recipe.description,
+    useCases: metadata?.useCases?.length ? metadata.useCases : recipe.useCases,
     fields: recipe.fields.map((field) => ({
       ...field,
       displayName: labels[field.path] ?? field.displayName,
@@ -189,7 +202,7 @@ function fieldPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): H
       state.fieldLabels[sourceKey] = labels;
       field.displayName = label;
       field.description = "用户确认";
-      void saveFieldLabels();
+      void saveStoredEdits();
     });
 
     const meta = document.createElement("span");
@@ -202,6 +215,46 @@ function fieldPreviewBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): H
   return block("返回字段", wrapper);
 }
 
+function recipeMetadataBlock(recipe: ReturnType<typeof buildRecipeFromCapture>): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "skill-editor";
+
+  const nameLabel = document.createElement("label");
+  nameLabel.className = "skill-field";
+  const nameTitle = document.createElement("span");
+  nameTitle.textContent = "数据技能名称";
+  const nameInput = document.createElement("input");
+  nameInput.value = recipe.displayName;
+  nameInput.addEventListener("input", () => {
+    const metadata = state.recipeMetadata[recipe.source.apiUrl] ?? {};
+    metadata.displayName = nameInput.value.trim() || "数据来源";
+    state.recipeMetadata[recipe.source.apiUrl] = metadata;
+    recipe.displayName = metadata.displayName;
+    void saveStoredEdits();
+  });
+  nameLabel.append(nameTitle, nameInput);
+
+  const descriptionLabel = document.createElement("label");
+  descriptionLabel.className = "skill-field";
+  const descriptionTitle = document.createElement("span");
+  descriptionTitle.textContent = "用途说明";
+  const descriptionInput = document.createElement("textarea");
+  descriptionInput.rows = 3;
+  descriptionInput.value = recipe.description;
+  descriptionInput.addEventListener("input", () => {
+    const metadata = state.recipeMetadata[recipe.source.apiUrl] ?? {};
+    metadata.description = descriptionInput.value.trim();
+    metadata.useCases = splitUseCases(descriptionInput.value);
+    state.recipeMetadata[recipe.source.apiUrl] = metadata;
+    recipe.description = metadata.description ?? "";
+    recipe.useCases = metadata.useCases ?? [];
+    void saveStoredEdits();
+  });
+  descriptionLabel.append(descriptionTitle, descriptionInput);
+
+  wrapper.append(nameLabel, descriptionLabel);
+  return block("数据技能信息", wrapper);
+}
 function runPreviewBlock(runResult: ReturnType<typeof runRecipeOnSample>): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = "run-preview";
@@ -309,25 +362,39 @@ function readableUrl(urlValue: string): string {
   }
 }
 
-async function loadFieldLabels(): Promise<void> {
+async function loadStoredEdits(): Promise<void> {
   try {
-    const stored = await chrome.storage.local.get(FIELD_LABELS_STORAGE_KEY);
+    const stored = await chrome.storage.local.get([FIELD_LABELS_STORAGE_KEY, RECIPE_META_STORAGE_KEY]);
     const labels = stored[FIELD_LABELS_STORAGE_KEY];
+    const metadata = stored[RECIPE_META_STORAGE_KEY];
     if (labels && typeof labels === "object" && !Array.isArray(labels)) {
       state.fieldLabels = labels as Record<string, Record<string, string>>;
-      render();
     }
+    if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+      state.recipeMetadata = metadata as Record<string, RecipeMetadata>;
+    }
+    render();
   } catch {
     // Local edits remain usable even if extension storage is unavailable.
   }
 }
 
-async function saveFieldLabels(): Promise<void> {
+async function saveStoredEdits(): Promise<void> {
   try {
-    await chrome.storage.local.set({ [FIELD_LABELS_STORAGE_KEY]: state.fieldLabels });
+    await chrome.storage.local.set({
+      [FIELD_LABELS_STORAGE_KEY]: state.fieldLabels,
+      [RECIPE_META_STORAGE_KEY]: state.recipeMetadata
+    });
   } catch {
     // The current in-memory edit is still reflected in the copied draft.
   }
+}
+function splitUseCases(value: string): string[] {
+  return value
+    .split(/[\n,，;；]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
 }
 function formatInlineValue(value: unknown): string {
   const text = typeof value === "string" ? value : JSON.stringify(value);
@@ -358,5 +425,4 @@ async function copyText(text: string, button: HTMLButtonElement): Promise<void> 
     button.textContent = originalText;
   }, 1600);
 }
-
 

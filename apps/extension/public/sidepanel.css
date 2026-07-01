@@ -260,3 +260,33 @@ summary {
   font-size: 12px;
   overflow-wrap: anywhere;
 }
+
+.skill-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.skill-field {
+  display: grid;
+  gap: 5px;
+}
+
+.skill-field span {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.skill-field input,
+.skill-field textarea {
+  border: 1px solid #c9cdd4;
+  border-radius: 6px;
+  font: inherit;
+  padding: 7px 8px;
+  width: 100%;
+}
+
+.skill-field textarea {
+  line-height: 1.45;
+  resize: vertical;
+}
