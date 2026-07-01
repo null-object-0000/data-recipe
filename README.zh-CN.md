@@ -184,3 +184,36 @@ pnpm dev:extension
 ```
 
 该命令会监听并重新构建 `apps/extension/dist`。Chrome 扩展页面中需要手动点击刷新插件后再验证最新代码。
+
+### 导出 Data Skill Package
+
+完成一次发现后，可以在侧边栏中：
+
+1. 为数据技能填写名称和用途说明；
+2. 确认或修改返回字段名称；
+3. 查看「试运行结果」确认能读取数据；
+4. 在「技能包预览」中确认已包含必需文件；
+5. 点击「导出技能包」。
+
+当前 MVP 会下载一个 `.data-skill.json` 文件。它是临时的文本包格式，里面包含：
+
+```text
+packageName
+files[]
+  SKILL.md
+  recipe.json
+  examples.md
+  README.md
+```
+
+后续会把这个导出格式升级为真实文件夹或 zip。当前阶段先用 JSON 文本包验证「可生成、可测试、可导出」的闭环。
+
+### Data Skill Package 验收点
+
+导出的技能包至少应满足：
+
+* 包含 `SKILL.md`、`recipe.json`、`examples.md`、`README.md`；
+* `SKILL.md` 能说明这个数据技能适合完成什么任务；
+* `recipe.json` 包含数据来源、查询条件、返回字段和测试运行所需信息；
+* 侧边栏「试运行结果」可以展示数据预览；
+* 导出前没有提示缺少必需文件。

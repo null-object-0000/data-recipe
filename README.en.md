@@ -191,3 +191,36 @@ pnpm dev:extension
 ```
 
 This watches and rebuilds `apps/extension/dist`. Refresh the unpacked extension in Chrome before testing updated code.
+
+### Export a Data Skill Package
+
+After one discovery flow, use the side panel to:
+
+1. Fill in the data skill name and purpose;
+2. Confirm or rename returned fields;
+3. Check "试运行结果" to confirm data can be read;
+4. Check "技能包预览" to confirm required files are present;
+5. Click "导出技能包".
+
+The current MVP downloads a `.data-skill.json` file. This is a temporary text package format containing:
+
+```text
+packageName
+files[]
+  SKILL.md
+  recipe.json
+  examples.md
+  README.md
+```
+
+A later version can export a real folder or zip. For now, the JSON text package validates the generate, test, and export loop.
+
+### Data Skill Package acceptance checks
+
+An exported package should at least:
+
+* Include `SKILL.md`, `recipe.json`, `examples.md`, and `README.md`;
+* Use `SKILL.md` to explain what the data skill is useful for;
+* Use `recipe.json` to hold the data source, query inputs, returned fields, and test-run information;
+* Show a data preview in the side panel test-run result;
+* Show no missing required files before export.
