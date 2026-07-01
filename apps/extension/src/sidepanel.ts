@@ -127,8 +127,29 @@ function renderDetail(): void {
     ])),
     block("查询条件", pre(JSON.stringify({ query: capture.query, body: capture.requestBody ?? {} }, null, 2))),
     block("返回预览", pre(capture.responsePreview || "无可展示内容")),
+    recipeDraftBlock(recipe),
     advancedInfo(capture, recipe)
   );
+}
+
+function recipeDraftBlock(recipe: unknown): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "recipe-draft";
+
+  const summary = document.createElement("div");
+  summary.className = "finding";
+  summary.textContent = "已根据当前数据来源生成一份可复用的数据技能草稿。";
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "copy-button";
+  copyButton.textContent = "复制 JSON";
+  copyButton.addEventListener("click", () => {
+    void copyText(JSON.stringify(recipe, null, 2), copyButton);
+  });
+
+  wrapper.append(summary, copyButton);
+  return block("数据技能草稿", wrapper);
 }
 
 function advancedInfo(capture: CapturedRequest, recipe: unknown): HTMLElement {
@@ -139,7 +160,7 @@ function advancedInfo(capture: CapturedRequest, recipe: unknown): HTMLElement {
   content.className = "detail-block";
   content.append(
     block("传输方式", keyValues([["类型", capture.transport]])),
-    block("数据配方草稿", pre(JSON.stringify(recipe, null, 2)))
+    block("数据技能 JSON", pre(JSON.stringify(recipe, null, 2)))
   );
   details.append(summary, content);
   return details;
@@ -208,4 +229,19 @@ function getElement<T extends HTMLElement>(id: string): T {
     throw new Error(`Missing element: ${id}`);
   }
   return element as T;
+}
+
+async function copyText(text: string, button: HTMLButtonElement): Promise<void> {
+  const originalText = button.textContent ?? "复制 JSON";
+
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "已复制";
+  } catch {
+    button.textContent = "复制失败";
+  }
+
+  window.setTimeout(() => {
+    button.textContent = originalText;
+  }, 1600);
 }

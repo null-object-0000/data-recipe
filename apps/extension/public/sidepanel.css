@@ -221,3 +221,12 @@ summary {
   font-size: 13px;
   font-weight: 600;
 }
+
+.recipe-draft {
+  display: grid;
+  gap: 10px;
+}
+
+.copy-button {
+  justify-self: start;
+}
